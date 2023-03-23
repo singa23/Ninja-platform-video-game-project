@@ -282,8 +282,8 @@ function scheduleCoinRespawn() {
 
 const minautor = {
   x: 900,
-  y: canvas.height - groundheight - 220,
-  images: [minautorImage, minautorImage2, minautorImage3],
+  y: canvas.height - groundheight - 220,                        
+  images: [minautorImage, minautorImage2, minautorImage3],                   
   imageIndex: 0,
   width: 180,
   height: 220,
@@ -295,7 +295,7 @@ function drawMinautor() {
   minautor.vx = -2; // Vitesse de déplacement horizontale du minotaure
   minautor.x += minautor.vx;
 
-  if (animationCounter % 10 === 0) {
+  if (animationCounter % 13 === 0) {
     minautor.imageIndex = (minautor.imageIndex + 1) % minautor.images.length;
   }
 
@@ -316,7 +316,7 @@ function drawMinautor() {
 const missile = {
   x: 1100,
   y: canvas.height - groundheight - 400,
-  images: [missileImage, missileImage2,],
+  images: [missileImage, missileImage2,],     
   width: 100,
   height: 100,
   vx: 3,
@@ -333,7 +333,7 @@ function drawMissile() {
   }
 
   if (missile.x - missile.width > canvas.width) {
-    // If the missile is off the canvas (on the right), reset it to the left
+    // remettre le missile a zero quand il arrive a droite
     missile.x = -missile.width;
   }
 
@@ -346,14 +346,28 @@ function drawMissile() {
   );
 }
 
-const sound1 = document.createElement('audio') // <audio>
-sound1.src = ""
 
-sound1.play()
-sound1.pause()
+
+
+const musicToggleButton = document.getElementById("music-toggle");
+const musicIcon = document.getElementById("music-icon");
+const sound1 = document.createElement('audio'); // <audio>
+sound1.src = "audio/Cyberpunk.mp3";
+sound1.play();
+musicToggleButton.addEventListener("click", function () {
+  if (sound1.paused) {
+    sound1.play();
+    musicIcon.className = "fas fa-pause";
+  } else {
+    sound1.pause();
+    musicIcon.className = "fas fa-play";
+  }
+});
+
+
 
 function drawScore() {
-  ctx.font = '24px Arial';
+  ctx.font = '30px Arial';
   ctx.fillStyle = 'white';
   ctx.fillText(`Score: ${score}`, 10, 30);
 }
@@ -422,26 +436,35 @@ function draw() {
   drawBird();
   drawMinautor();
   drawMissile();
-
   drawScore();
+  
+  function gameOver() {
+    document.getElementById("game-over").style.display = "flex";
+    document.getElementById("final-score").textContent = score;
+  }
 
    if (isNinjaCollidingWithBird()) {
-    console.log("Game Over - Collided with Bird!");
-    return;
-  }
+  console.log("Game Over - Collided with Bird!");
+  gameOver();
+  return;
+}
 
-  if (isNinjaCollidingWithEnemy()) {
-    console.log("Game Over - Collided with Enemy!");
-    return;
-  }
-   if (isNinjaCollidingWithMinautor()) {
-    console.log("Game Over - Collided with Minautor!");
-    return;
-  }
-   if (isNinjaCollidingWithMissile()) {
-    console.log("Game Over - Collided with Missile!")
-    return;
-   }
+if (isNinjaCollidingWithEnemy()) {
+  console.log("Game Over - Collided with Enemy!");
+  gameOver();
+  return;
+}
+if (isNinjaCollidingWithMinautor()) {
+  console.log("Game Over - Collided with Minautor!");
+  gameOver();
+  return;
+}
+if (isNinjaCollidingWithMissile()) {
+  console.log("Game Over - Collided with Missile!");
+  gameOver();
+  return;
+}
+
 
   animationCounter++;
   requestAnimationFrame(draw); // loop
@@ -467,7 +490,54 @@ function isOnGroundOrPlatform() {
   return false;
 }
 
-draw();
+function startGame() {
+  // Cachez l'écran d'introduction
+  document.getElementById("game-intro").style.display = "none";
+  
+  // Affichez le canvas
+  document.getElementById("canvas").style.display = "block";
+  
+  // Démarrez le jeu en appelant la fonction draw()
+  requestAnimationFrame(draw);
+}
+
+// Ajoutez un gestionnaire d'événements pour le bouton "Start Game"
+document.getElementById("start-button").addEventListener("click", startGame);
+
+
+function resetGame() {
+  // il faut renitialiser 
+  ninja.x = 230;
+  ninja.y =  canvas.height - groundheight - 200; 
+  ninja.vx = 0;
+  ninja.vy = 0;
+  birdObj.x =  canvas.width,
+  birdObj.y = 0,
+  birdObj.vx = -3;
+  birdObj.vy = 2;
+  enemy.x = 900,
+  enemy.y = canvas.height - groundheight - 100,
+  enemy.vx =0,
+  enemy.vy =0,
+  minautor.x = 900,
+  minautor.y = canvas.height - groundheight - 220,
+  minautor.vx = 0,
+  minautor.vy = 0,  
+  missile.x = 1100 
+  missile.y = canvas.height - groundheight - 400,
+  missile.vx = 3,
+  missile.vy = 0,
+  score = 0;
+}
+
+
+document.getElementById("restart-button").addEventListener("click", function () {
+  document.getElementById("game-over").style.display = "none";
+  resetGame();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
+});
+
 
 document.addEventListener('keydown', function (event) {
   console.log('une touche vient dêtre appuyée', event.code);

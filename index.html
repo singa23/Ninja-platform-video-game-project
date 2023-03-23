@@ -8,25 +8,34 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope&family=Montserrat&family=Mr+Dafoe&family=Roboto:ital,wght@0,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
     <title>Ninja video game</title>
 </head>
 <body>
-    <div class="game-intro">
-        <img src="images/logo-ninja.avif" alt="" class="logo-img" />
-        <br />
-        <button id="start-button">Start Game</button>
-        <p>Use the left and right arrow to control the Ninja!</p>
-        <img src="images/arrows.png" alt="" class="arrows-img" />
-      </div>
+  <button id="music-toggle">
+    <i id="music-icon" class="fas fa-play" ></i>
+  </button>
+  <div id="game-intro" class="game-intro">
+      <img src="images/logo-ninja.avif" alt="" class="logo-img" />
+      <br />
+      <button id="start-button">Start Game</button>
+      <p>Use the left and right arrow to control the Ninja!</p>
+      <p>Use the spacebar to Jump!</p>
+      <img src="images/arrows.png" alt="" class="arrows-img" />
+  </div>
+
+  <div id="game-board">
+      <canvas id="canvas" style="display: none;"></canvas>
+  </div>
+  <div id="game-over" style="display: none;">
+    <h1>Game Over</h1>
+    <p>Your score: <span id="final-score"></span></p>
+    <button id="restart-button">Play Again</button>
+  </div>
 
 
-      <div id="game-board">
-        <canvas id="canvas"></canvas>
-      </div>
-
-
-
-
-    <script  src="index.js"></script>
+  <script src="index.js"></script>
+</body>
 </body>
 </html>
