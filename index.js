@@ -57,6 +57,7 @@ let score = 0;
 let animationCounter = 0;
 const enemyDelay = 15 * 60; // 10 secondes * 60 images par seconde
 const minautorDelay = 30 * 60; // 40 secondes * 60 images par seconde
+const fireDelay = 45 * 60;
 
 
 const ninja = {
@@ -122,75 +123,90 @@ const ninja = {
       this.y + this.height > missile.y
     );
   },
+  isCollidingWithFire: function() {
+    return (
+      this.x <fire.x + fire.width &&
+      this.x + this.width > fire.x &&
+      this.y < fire.y + fire.height &&
+      this.y + this.height > fire.y
+    );
+  },
+  
 };
 
 const ninjaImages = [ninjaImage, ninjaImage2];
 let ninjaImageIndex = 0;
 
 const enemy = {
-  x:1200,
+  x: 1200,
   y: canvas.height - groundheight - 100,
-  image: enemyImage,
-  width:70,
+  images: [enemyImage, enemyImage2],
+  imageIndex: 0,
+  width: 70,
   height: 100,
-  vx:0,
-  vy:0,
-  draw: function() {
+  vx: 0,
+  vy: 0,
+  draw: function () {
     if (animationCounter > enemyDelay) {
-      enemy.vx = -5; // Vitesse de déplacement horizontale de l'ennemi
-      enemy.x += enemy.vx;
-  
+      this.vx = -5; // Vitesse de déplacement horizontale de l'ennemi
+      this.x += this.vx;
+
       if (animationCounter % 10 === 0) {
-        enemyImageIndex = (enemyImageIndex + 1) % enemyImages.length;
-      }
-  
-      if (enemy.x + enemy.width < 0) {
+        this.imageIndex = (this.imageIndex + 1) % this.images.length;
+       }
+
+      if (this.x + this.width < 0) {
         // L'ennemi est hors du canvas (à gauche), le réinitialiser à droite
-        enemy.x = canvas.width;
+        this.x = canvas.width;
       }
-  
+
       ctx.drawImage(
-        enemyImages[enemyImageIndex],
-        enemy.x,
-        enemy.y,
-        enemy.width,
-        enemy.height
+        this.images[this.imageIndex],
+        this.x,
+        this.y,
+        this.width,
+        this.height
       );
-    }
+    };
   },
 };
 
-
-  const enemyImages = [enemyImage, enemyImage2];
-  let enemyImageIndex = 0;
 
 const birdObj = {
   x: canvas.width, // Commence à partir du coin supérieur droit
   y: 0,
-  image: birdImage,
+  images: [birdImage, birdImage2],
+  imageIndex: 0,
   width: 100,
   height: 100,
   vx: -3, // Se déplace vers la gauche
   vy: 2, // Se déplace vers le bas
-  draw: function() {
-    birdObj.x += birdObj.vx;
-    birdObj.y += birdObj.vy;
-  
-    if (birdObj.x + birdObj.width < 0 || birdObj.y + birdObj.height > canvas.height - groundheight) {
-      birdObj.x = canvas.width;
-      birdObj.y = Math.random() * (canvas.height / 2);
+  draw: function () {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (
+      this.x + this.width < 0 ||
+      this.y + this.height > canvas.height - groundheight
+    ) {
+      this.x = canvas.width;
+      this.y = Math.random() * (canvas.height / 2);
     }
-  
+
     if (animationCounter % 10 === 0) {
-      birdImageIndex = (birdImageIndex + 1) % birdImages.length;
+      this.imageIndex = (this.imageIndex + 1) % this.images.length;
     }
-  
-    ctx.drawImage(birdImages[birdImageIndex], birdObj.x, birdObj.y, birdObj.width, birdObj.height);
+
+    ctx.drawImage(
+      this.images[this.imageIndex],
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
   },
 };
 
-const birdImages = [birdImage, birdImage2];
-let birdImageIndex = 0;
 
 class Platform {
   constructor(x, y, width, height) {
@@ -264,6 +280,7 @@ class Coin {
     this.height = 30;
     this.images = [coinImage, coinImage2,coinImage3,coinImage4,coinImage5,coinImage6];
     this.imageIndex = 0;
+    this.collected = false;
   }
 
   draw() {
@@ -287,6 +304,7 @@ function drawCoins() {
   for (let i = 0; i < coins.length; i++) {
     const coin = coins[i];
     if (isNinjaCollidingWithCoin(coin)) {
+      coin.collected = true;
       score++; // Augmente le score de 1
       coins.splice(i, 1); // Retire la pièce du tableau
       i--; // Ajuste l'index pour ne pas sauter de pièce
@@ -324,95 +342,152 @@ function scheduleCoinRespawn() {
   }, 15000); // 10 secondes en millisecondes
 }
 
-const minautor = {
-  x: 1200,
-  y: canvas.height - groundheight - 220,                        
-  images: [minautorImage, minautorImage2, minautorImage3],                   
-  imageIndex: 0,
-  width: 180,
-  height: 220,
-  vx: 0,
-  vy: 0,
-  draw: function() {
-    if (animationCounter > minautorDelay) {
-      minautor.vx = -2; // Vitesse de déplacement horizontale du minotaure
-      minautor.x += minautor.vx;
-  
-      if (animationCounter % 13 === 0) {
-        minautor.imageIndex = (minautor.imageIndex + 1) % minautor.images.length;
-      }
-  
-      if (minautor.x + minautor.width < 0) {
-        // Le minotaure est hors du canvas (à gauche), le réinitialiser à droite
-        minautor.x = canvas.width;
-      }
-  
-      ctx.drawImage(
-        minautor.images[minautor.imageIndex],
-        minautor.x,
-        minautor.y,
-        minautor.width,
-        minautor.height
-      );
-    }
-  },
-  
-}
-
-const missile = {
-  x: 1100,
-  y: canvas.height - groundheight - 400,
-  images: [missileImage, missileImage2,],     
-  width: 100,
-  height: 100,
-  vx: 3,
-  vy: 0,
-  imageIndex: 0,
-  draw: function() {
-    missile.vx = 3;
-    missile.x += missile.vx;
-  
-    if (animationCounter % 10 === 0) {
-      missile.imageIndex = (missile.imageIndex + 1) % missile.images.length;
-    }
-  
-    if (missile.x - missile.width > canvas.width) {
-      // remettre le missile a zero quand il arrive a droite
-      missile.x = -missile.width;
-    }
-  
-    ctx.drawImage(
-      missile.images[missile.imageIndex],
-      missile.x,
-      missile.y,
-      missile.width,
-      missile.height
-    );
-  },
-};
-
-const musicToggleButton = document.getElementById("music-toggle");
-const musicIcon = document.getElementById("music-icon");
-const sound1 = document.createElement('audio'); // <audio>
-sound1.src = "audio/Cyberpunk.mp3";
-sound1.play();
-musicToggleButton.addEventListener("click", function () {
-  if (sound1.paused) {
-    sound1.play();
-    musicIcon.className = "fas fa-pause";
-  } else {
-    sound1.pause();
-    musicIcon.className = "fas fa-play";
-  }
-});
-
-
-
 function drawScore() {
   ctx.font = '30px Arial';
   ctx.fillStyle = 'white';
   ctx.fillText(`Score: ${score}`, 10, 30);
 }
+
+const minautor = {
+  x: 1200,
+  y: canvas.height - groundheight - 220,
+  images: [minautorImage, minautorImage2, minautorImage3],
+  imageIndex: 0,
+  width: 180,
+  height: 220,
+  vx: 0,
+  vy: 0,
+  draw: function () {
+    if (animationCounter > minautorDelay) {
+      this.vx = -2; // Vitesse de déplacement horizontale du minotaure
+      this.x += this.vx;
+
+      if (animationCounter % 13 === 0) {
+        this.imageIndex = (this.imageIndex + 1) % this.images.length;
+      }
+
+      if (this.x + this.width < 0) {
+        // Le minotaure est hors du canvas (à gauche), le réinitialiser à droite
+        this.x = canvas.width;
+      }
+
+      ctx.drawImage(
+        this.images[this.imageIndex],
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    }
+  },
+};
+
+
+const missile = {
+  x: 1100,
+  y: canvas.height - groundheight - 400,
+  images: [missileImage, missileImage2],
+  width: 100,
+  height: 100,
+  vx: 3,
+  vy: 0,
+  imageIndex: 0,
+  draw: function () {
+    this.vx = 3;
+    this.x += this.vx;
+
+    if (animationCounter % 10 === 0) {
+      this.imageIndex = (this.imageIndex + 1) % this.images.length;
+    }
+
+    if (this.x - this.width > canvas.width) {
+      // remettre le missile a zero quand il arrive a droite
+      this.x = -this.width;
+    }
+
+    ctx.drawImage(
+      this.images[this.imageIndex],
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+  },
+};
+
+
+const fire = { 
+  x: Math.random() * canvas.width,
+  y: -220, 
+  images: [fireImage, fireImage2],
+  imageIndex: 0,
+  width: 250,
+  height: 220,
+  vx: 0,
+  vy: 2, // Vitesse de déplacement verticale du feu
+  draw: function () {
+    if (animationCounter > fireDelay) {
+      this.y += this.vy;
+
+      if (animationCounter % 13 === 0) {
+        this.imageIndex = (this.imageIndex + 1) % this.images.length;
+      }
+
+      if (this.y > canvas.height) {
+        // Le feu est hors du canvas (en bas), le réinitialiser en haut
+        this.y = -this.height;
+      }
+
+      ctx.drawImage(
+        this.images[this.imageIndex],
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    }
+  },
+};
+
+const tree1 = {
+   x: 100, 
+   y: canvas.height - groundheight - 250, 
+   width: 70,
+   height: 250, 
+   draw: function() {
+    ctx.drawImage(treeImage, this.x, this.y, this.width, this.height);
+  },
+};
+
+const tree2 = {
+   x: 900, 
+   y: canvas.height - groundheight - 250, // Position y de l'arbre 2 (ajustez la hauteur de l'arbre si nécessaire)
+   width: 70, 
+   height: 250, 
+   draw: function() {
+    ctx.drawImage(treeImage, this.x, this.y, this.width, this.height);
+  },
+};
+
+const musicToggleButton = document.getElementById("music-toggle");
+const muteIcon = document.getElementById("mute-icon");
+const unmuteIcon = document.getElementById("unmute-icon");
+const sound1 = document.createElement('audio');
+sound1.src = "audio/Cyberpunk.mp3";
+sound1.play();
+
+musicToggleButton.addEventListener("click", function () {
+  if (sound1.paused) {
+    sound1.play();
+    muteIcon.style.display = "none";
+    unmuteIcon.style.display = "block";
+  } else {
+    sound1.pause();
+    muteIcon.style.display = "block";
+    unmuteIcon.style.display = "none";
+  }
+});
+
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -436,9 +511,10 @@ function draw() {
   ctx.fillStyle = pattern;
   ctx.fillRect(0, canvas.height - groundheight, canvas.width, groundheight);
 
- ninja.draw();
-
- drawPlatforms();
+  ninja.draw();
+  tree1.draw();
+  tree2.draw(); 
+  drawPlatforms();
 
   ninja.canvasBorder();
   drawCoins();
@@ -446,6 +522,7 @@ function draw() {
   birdObj.draw();
   minautor.draw();
   missile.draw();
+  fire.draw();
   drawScore();
   
   function gameOver() {
@@ -468,29 +545,38 @@ function draw() {
 
  if (ninja.isCollidingWithEnemy()) {
    console.log("Game Over - Collided with Enemy!");
-   playCollisionSound(); // Joue le son de collision
+   playCollisionSound(); // 
    gameOver();
    return;
  }
 
  if (ninja.isCollidingWithMinautor()) {
    console.log("Game Over - Collided with Minautor!");
-   playCollisionSound(); // Joue le son de collision
+   playCollisionSound();  
    gameOver();
    return;
  }
 
  if (ninja.isCollidingWithMissile()) {
    console.log("Game Over - Collided with Missile!");
-   playCollisionSound(); // Joue le son de collision
+   playCollisionSound(); // 
    gameOver();
    return;
  }
 
+ if (ninja.isCollidingWithFire()) {
+   console.log("Game Over - Collided with fire!");
+   playCollisionSound(); // 
+   gameOver();
+   return;
 
+
+ }
   animationCounter++;
   requestAnimationFrame(draw); // loop
 }
+
+
 scheduleCoinRespawn();
 function isOnGroundOrPlatform() {
   if (ninja.y === canvas.height - groundheight - ninja.height) { // detection des plat
@@ -521,9 +607,12 @@ function startGame() {
   
   // Démarrez le jeu en appelant la fonction draw()
   requestAnimationFrame(draw);
+  musicToggleButton.style.display = "block";
+  musicToggleButton.style.background = "grey";
+
 }
 
-// Ajoutez un gestionnaire d'événements pour le bouton "Start Game"
+// démarrage du jeu par clic
 document.getElementById("start-button").addEventListener("click", startGame);
 
 
@@ -549,6 +638,10 @@ function resetGame() {
   missile.y = canvas.height - groundheight - 400;
   missile.vx = 3;
   missile.vy = 0;
+  fire.x = 950,
+  fire.y = 220,
+  fire.vx = 0,
+  fire.vy = 2,
   score = 0;
 
   // Réinitialiser le compteur d'animation et la position du minotaure
@@ -574,12 +667,14 @@ document.addEventListener('keydown', function (event) {
       ninja.vx = -6;
       break;
     case "Space": // si le ninja est sur le sol alors il va sauter de 10 px
+      event.preventDefault(); // pour éviter l'interaction avec le bouton de musique
       if (isOnGroundOrPlatform()) {
         ninja.vy = -13; // valeur a régler pour ajuster le saut
       }
       break;
   }
 });
+
 
 document.addEventListener("keyup", function (event) {
   console.log("une touche detre relachée", event.code);
