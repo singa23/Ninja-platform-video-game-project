@@ -23,6 +23,9 @@ const minautorImage2 = new Image();
 const minautorImage3 = new Image();
 const missileImage = new Image();
 const missileImage2 = new Image();
+const treeImage = new Image();
+const fireImage = new Image();
+const fireImage2 = new Image();
 
 background.src = "images/ninja-background.png";
 ground.src = "images/ground.png";
@@ -44,10 +47,17 @@ minautorImage2.src = "images/minautor2.png";
 minautorImage3.src = "images/minautor3.png";
 missileImage.src = "images/missile.png";
 missileImage2.src = "images/missile2.png";
+treeImage.src = 'images/tree.png';
+fireImage.src = "images/fire.png";
+fireImage2.src = "images/fire2.png";
 
-const groundheight = 47;
+const groundheight = 40;
 let gravity = 0.4;
 let score = 0;
+let animationCounter = 0;
+const enemyDelay = 15 * 60; // 10 secondes * 60 images par seconde
+const minautorDelay = 30 * 60; // 40 secondes * 60 images par seconde
+
 
 const ninja = {
   x: 230,
@@ -57,67 +67,102 @@ const ninja = {
   height: 100,
   vx: 0,
   vy: 0,
-  // draw: function () {
-  //   // 
-  // },
-  // isCollidingWithCoin: function (coin) {
-  //   // 
-  // }
+  draw: function() {
+    if (animationCounter % 10 === 0) { //  cela controle la vitesse danimation
+      ninjaImageIndex = (ninjaImageIndex + 1) % ninjaImages.length;
+    }
+  
+    ctx.drawImage(
+      ninjaImages[ninjaImageIndex],
+      ninja.x,
+      ninja.y,
+      ninja.width,
+      ninja.height
+    );
+  },
+  canvasBorder: function() {
+    // Vérifier la limite de gauche du canvas et empêcher le ninja de sortir
+    if (this.x < 0) {
+      this.x = 0;
+    }
+    // Vérifier la limite de droite du canvas et empêcher le ninja de sortir
+    if (this.x + this.width > canvas.width) {
+      this.x = canvas.width - this.width;
+    }
+  },
+  isCollidingWithBird: function() {
+    return (
+      this.x < birdObj.x + birdObj.width &&
+      this.x + this.width > birdObj.x &&
+      this.y < birdObj.y + birdObj.height &&
+      this.y + this.height > birdObj.y
+    );
+  },
+  isCollidingWithEnemy: function() {
+    return (
+      this.x < enemy.x + enemy.width &&
+      this.x + this.width > enemy.x &&
+      this.y < enemy.y + enemy.height &&
+      this.y + this.height > enemy.y
+    );
+  },
+  isCollidingWithMinautor: function() {
+    return (
+      this.x < minautor.x + minautor.width &&
+      this.x + this.width > minautor.x &&
+      this.y < minautor.y + minautor.height &&
+      this.y + this.height > minautor.y
+    );
+  },
+  isCollidingWithMissile: function() {
+    return (
+      this.x < missile.x + missile.width &&
+      this.x + this.width > missile.x &&
+      this.y < missile.y + missile.height &&
+      this.y + this.height > missile.y
+    );
+  },
 };
 
 const ninjaImages = [ninjaImage, ninjaImage2];
 let ninjaImageIndex = 0;
-let animationCounter = 0;
-
-function drawNinja() {
-  if (animationCounter % 10 === 0) { //  cela controle la vitesse danimation
-    ninjaImageIndex = (ninjaImageIndex + 1) % ninjaImages.length;
-  }
-
-  ctx.drawImage(
-    ninjaImages[ninjaImageIndex],
-    ninja.x,
-    ninja.y,
-    ninja.width,
-    ninja.height
-  );
-}
 
 const enemy = {
-  x:900,
+  x:1200,
   y: canvas.height - groundheight - 100,
   image: enemyImage,
   width:70,
   height: 100,
   vx:0,
   vy:0,
-  // draw:,
- };
+  draw: function() {
+    if (animationCounter > enemyDelay) {
+      enemy.vx = -5; // Vitesse de déplacement horizontale de l'ennemi
+      enemy.x += enemy.vx;
+  
+      if (animationCounter % 10 === 0) {
+        enemyImageIndex = (enemyImageIndex + 1) % enemyImages.length;
+      }
+  
+      if (enemy.x + enemy.width < 0) {
+        // L'ennemi est hors du canvas (à gauche), le réinitialiser à droite
+        enemy.x = canvas.width;
+      }
+  
+      ctx.drawImage(
+        enemyImages[enemyImageIndex],
+        enemy.x,
+        enemy.y,
+        enemy.width,
+        enemy.height
+      );
+    }
+  },
+};
 
-const enemyImages = [enemyImage, enemyImage2];
-let enemyImageIndex = 0;
 
-function drawEnemy() {
-  enemy.vx = -5; // Vitesse de déplacement horizontale de l'ennemi
-  enemy.x += enemy.vx;
-
-  if (animationCounter % 10 === 0) {
-    enemyImageIndex = (enemyImageIndex + 1) % enemyImages.length;
-  }
-
-  if (enemy.x + enemy.width < 0) {
-    // L'ennemi est hors du canvas (à gauche), le réinitialiser à droite
-    enemy.x = canvas.width;
-  }
-
-  ctx.drawImage(
-    enemyImages[enemyImageIndex],
-    enemy.x,
-    enemy.y,
-    enemy.width,
-    enemy.height
-  );
-}
+  const enemyImages = [enemyImage, enemyImage2];
+  let enemyImageIndex = 0;
 
 const birdObj = {
   x: canvas.width, // Commence à partir du coin supérieur droit
@@ -127,26 +172,25 @@ const birdObj = {
   height: 100,
   vx: -3, // Se déplace vers la gauche
   vy: 2, // Se déplace vers le bas
+  draw: function() {
+    birdObj.x += birdObj.vx;
+    birdObj.y += birdObj.vy;
+  
+    if (birdObj.x + birdObj.width < 0 || birdObj.y + birdObj.height > canvas.height - groundheight) {
+      birdObj.x = canvas.width;
+      birdObj.y = Math.random() * (canvas.height / 2);
+    }
+  
+    if (animationCounter % 10 === 0) {
+      birdImageIndex = (birdImageIndex + 1) % birdImages.length;
+    }
+  
+    ctx.drawImage(birdImages[birdImageIndex], birdObj.x, birdObj.y, birdObj.width, birdObj.height);
+  },
 };
 
 const birdImages = [birdImage, birdImage2];
 let birdImageIndex = 0;
-
-function drawBird() {
-  birdObj.x += birdObj.vx;
-  birdObj.y += birdObj.vy;
-
-  if (birdObj.x + birdObj.width < 0 || birdObj.y + birdObj.height > canvas.height - groundheight) {
-    birdObj.x = canvas.width;
-    birdObj.y = Math.random() * (canvas.height / 2);
-  }
-
-  if (animationCounter % 10 === 0) {
-    birdImageIndex = (birdImageIndex + 1) % birdImages.length;
-  }
-
-  ctx.drawImage(birdImages[birdImageIndex], birdObj.x, birdObj.y, birdObj.width, birdObj.height);
-}
 
 class Platform {
   constructor(x, y, width, height) {
@@ -281,7 +325,7 @@ function scheduleCoinRespawn() {
 }
 
 const minautor = {
-  x: 900,
+  x: 1200,
   y: canvas.height - groundheight - 220,                        
   images: [minautorImage, minautorImage2, minautorImage3],                   
   imageIndex: 0,
@@ -289,28 +333,30 @@ const minautor = {
   height: 220,
   vx: 0,
   vy: 0,
-}
-
-function drawMinautor() {
-  minautor.vx = -2; // Vitesse de déplacement horizontale du minotaure
-  minautor.x += minautor.vx;
-
-  if (animationCounter % 13 === 0) {
-    minautor.imageIndex = (minautor.imageIndex + 1) % minautor.images.length;
-  }
-
-  if (minautor.x + minautor.width < 0) {
-    // Le minotaure est hors du canvas (à gauche), le réinitialiser à droite
-    minautor.x = canvas.width;
-  }
-
-  ctx.drawImage(
-    minautor.images[minautor.imageIndex],
-    minautor.x,
-    minautor.y,
-    minautor.width,
-    minautor.height
-  );
+  draw: function() {
+    if (animationCounter > minautorDelay) {
+      minautor.vx = -2; // Vitesse de déplacement horizontale du minotaure
+      minautor.x += minautor.vx;
+  
+      if (animationCounter % 13 === 0) {
+        minautor.imageIndex = (minautor.imageIndex + 1) % minautor.images.length;
+      }
+  
+      if (minautor.x + minautor.width < 0) {
+        // Le minotaure est hors du canvas (à gauche), le réinitialiser à droite
+        minautor.x = canvas.width;
+      }
+  
+      ctx.drawImage(
+        minautor.images[minautor.imageIndex],
+        minautor.x,
+        minautor.y,
+        minautor.width,
+        minautor.height
+      );
+    }
+  },
+  
 }
 
 const missile = {
@@ -322,32 +368,28 @@ const missile = {
   vx: 3,
   vy: 0,
   imageIndex: 0,
+  draw: function() {
+    missile.vx = 3;
+    missile.x += missile.vx;
+  
+    if (animationCounter % 10 === 0) {
+      missile.imageIndex = (missile.imageIndex + 1) % missile.images.length;
+    }
+  
+    if (missile.x - missile.width > canvas.width) {
+      // remettre le missile a zero quand il arrive a droite
+      missile.x = -missile.width;
+    }
+  
+    ctx.drawImage(
+      missile.images[missile.imageIndex],
+      missile.x,
+      missile.y,
+      missile.width,
+      missile.height
+    );
+  },
 };
-
-function drawMissile() {
-  missile.vx = 3;
-  missile.x += missile.vx;
-
-  if (animationCounter % 10 === 0) {
-    missile.imageIndex = (missile.imageIndex + 1) % missile.images.length;
-  }
-
-  if (missile.x - missile.width > canvas.width) {
-    // remettre le missile a zero quand il arrive a droite
-    missile.x = -missile.width;
-  }
-
-  ctx.drawImage(
-    missile.images[missile.imageIndex],
-    missile.x,
-    missile.y,
-    missile.width,
-    missile.height
-  );
-}
-
-
-
 
 const musicToggleButton = document.getElementById("music-toggle");
 const musicIcon = document.getElementById("music-icon");
@@ -394,76 +436,56 @@ function draw() {
   ctx.fillStyle = pattern;
   ctx.fillRect(0, canvas.height - groundheight, canvas.width, groundheight);
 
- drawNinja();
+ ninja.draw();
 
  drawPlatforms();
 
- function isNinjaCollidingWithBird() {
-  return (
-    ninja.x < birdObj.x + birdObj.width &&
-    ninja.x + ninja.width > birdObj.x &&
-    ninja.y < birdObj.y + birdObj.height &&
-    ninja.y + ninja.height > birdObj.y
-  );
-}
-  function isNinjaCollidingWithEnemy() {
-    return (
-      ninja.x < enemy.x + enemy.width &&
-      ninja.x + ninja.width > enemy.x &&
-      ninja.y < enemy.y + enemy.height &&
-      ninja.y + ninja.height > enemy.y
-    );
-  }
-  function isNinjaCollidingWithMinautor() {
-    return (
-      ninja.x < minautor.x + minautor.width &&
-      ninja.x + ninja.width > minautor.x &&
-      ninja.y < minautor.y + minautor.height &&
-      ninja.y + ninja.height > minautor.y
-    );
-  }
-  function isNinjaCollidingWithMissile() {
-    return (
-      ninja.x < missile.x + missile.width &&
-      ninja.x + ninja.width > missile.x &&
-      ninja.y < missile.y + missile.height &&
-      ninja.y + ninja.height > missile.y
-    );
-  }
-
+  ninja.canvasBorder();
   drawCoins();
-  drawEnemy();
-  drawBird();
-  drawMinautor();
-  drawMissile();
+  enemy.draw();
+  birdObj.draw();
+  minautor.draw();
+  missile.draw();
   drawScore();
   
   function gameOver() {
     document.getElementById("game-over").style.display = "flex";
     document.getElementById("final-score").textContent = score;
   }
+  const collisionSound = document.createElement('audio');
+  collisionSound.src = 'audio/scream.ogg';
+  function playCollisionSound() {
+    collisionSound.currentTime = 0; // Réinitialiser le son à son début
+    collisionSound.play();
+ } 
 
-   if (isNinjaCollidingWithBird()) {
-  console.log("Game Over - Collided with Bird!");
-  gameOver();
-  return;
-}
+  if (ninja.isCollidingWithBird()) {
+   console.log("Game Over - Collided with Bird!");
+   playCollisionSound(); // Joue le son de collision
+   gameOver();
+   return;
+ }
 
-if (isNinjaCollidingWithEnemy()) {
-  console.log("Game Over - Collided with Enemy!");
-  gameOver();
-  return;
-}
-if (isNinjaCollidingWithMinautor()) {
-  console.log("Game Over - Collided with Minautor!");
-  gameOver();
-  return;
-}
-if (isNinjaCollidingWithMissile()) {
-  console.log("Game Over - Collided with Missile!");
-  gameOver();
-  return;
-}
+ if (ninja.isCollidingWithEnemy()) {
+   console.log("Game Over - Collided with Enemy!");
+   playCollisionSound(); // Joue le son de collision
+   gameOver();
+   return;
+ }
+
+ if (ninja.isCollidingWithMinautor()) {
+   console.log("Game Over - Collided with Minautor!");
+   playCollisionSound(); // Joue le son de collision
+   gameOver();
+   return;
+ }
+
+ if (ninja.isCollidingWithMissile()) {
+   console.log("Game Over - Collided with Missile!");
+   playCollisionSound(); // Joue le son de collision
+   gameOver();
+   return;
+ }
 
 
   animationCounter++;
@@ -506,30 +528,33 @@ document.getElementById("start-button").addEventListener("click", startGame);
 
 
 function resetGame() {
-  // il faut renitialiser 
+  // Il faut réinitialiser
   ninja.x = 230;
-  ninja.y =  canvas.height - groundheight - 200; 
+  ninja.y = canvas.height - groundheight - 200;
   ninja.vx = 0;
   ninja.vy = 0;
-  birdObj.x =  canvas.width,
-  birdObj.y = 0,
+  birdObj.x = canvas.width;
+  birdObj.y = 0;
   birdObj.vx = -3;
   birdObj.vy = 2;
-  enemy.x = 900,
-  enemy.y = canvas.height - groundheight - 100,
-  enemy.vx =0,
-  enemy.vy =0,
-  minautor.x = 900,
-  minautor.y = canvas.height - groundheight - 220,
-  minautor.vx = 0,
-  minautor.vy = 0,  
-  missile.x = 1100 
-  missile.y = canvas.height - groundheight - 400,
-  missile.vx = 3,
-  missile.vy = 0,
+  enemy.x = 1300;
+  enemy.y = canvas.height - groundheight - 100;
+  enemy.vx = 0;
+  enemy.vy = 0;
+  minautor.x = 1300;
+  minautor.y = canvas.height - groundheight - 220;
+  minautor.vx = 0;
+  minautor.vy = 0;
+  missile.x = 1100;
+  missile.y = canvas.height - groundheight - 400;
+  missile.vx = 3;
+  missile.vy = 0;
   score = 0;
-}
 
+  // Réinitialiser le compteur d'animation et la position du minotaure
+  animationCounter = 0;
+  
+}
 
 document.getElementById("restart-button").addEventListener("click", function () {
   document.getElementById("game-over").style.display = "none";
