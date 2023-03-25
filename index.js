@@ -280,7 +280,6 @@ class Coin {
     this.height = 30;
     this.images = [coinImage, coinImage2,coinImage3,coinImage4,coinImage5,coinImage6];
     this.imageIndex = 0;
-    this.collected = false;
   }
 
   draw() {
@@ -304,7 +303,6 @@ function drawCoins() {
   for (let i = 0; i < coins.length; i++) {
     const coin = coins[i];
     if (isNinjaCollidingWithCoin(coin)) {
-      coin.collected = true;
       score++; // Augmente le score de 1
       coins.splice(i, 1); // Retire la pièce du tableau
       i--; // Ajuste l'index pour ne pas sauter de pièce
@@ -599,13 +597,13 @@ function isOnGroundOrPlatform() {
 }
 
 function startGame() {
-  // Cachez l'écran d'introduction
+  // Cacher l'écran d'introduction
   document.getElementById("game-intro").style.display = "none";
   
   // Affichez le canvas
   document.getElementById("canvas").style.display = "block";
   
-  // Démarrez le jeu en appelant la fonction draw()
+  // Démarrer le jeu en appelant la fonction draw()
   requestAnimationFrame(draw);
   musicToggleButton.style.display = "block";
   musicToggleButton.style.background = "grey";
@@ -617,7 +615,7 @@ document.getElementById("start-button").addEventListener("click", startGame);
 
 
 function resetGame() {
-  // Il faut réinitialiser
+  // Il faut réinitialiser sinon bug positions
   ninja.x = 230;
   ninja.y = canvas.height - groundheight - 200;
   ninja.vx = 0;
