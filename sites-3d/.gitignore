@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+artifact/
+next-env.d.ts
+*.tsbuildinfo
+screenshots/_template/
+screenshots/
+sites-3d.zip
